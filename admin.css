@@ -1,0 +1,66 @@
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 16px 24px; }
+header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.logo { height: 48px; border-radius: 6px; }
+.title { flex: 1; }
+.title h1 { font-size: 1.4rem; }
+#who { font-size: 0.85rem; color: #94a3b8; }
+nav { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #334155; }
+nav button { background: none; border: none; color: #94a3b8; padding: 10px 18px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; }
+nav button.active { color: #fff; border-color: #0284c7; }
+main { background: #1e293b; border-radius: 14px; padding: 20px; }
+[hidden] { display: none !important; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 14px; }
+.bar label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: #94a3b8; }
+.bar label.chk { flex-direction: row; align-items: center; gap: 6px; }
+input, select, textarea { background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; font-size: 0.95rem; }
+button { background: #0284c7; color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-weight: bold; cursor: pointer; }
+button.ghost { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
+button.danger { background: #dc2626; }
+button.small { padding: 5px 10px; font-size: 0.8rem; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #334155; vertical-align: top; }
+th { color: #94a3b8; font-size: 0.78rem; text-transform: uppercase; }
+td.act { white-space: nowrap; display: flex; gap: 6px; }
+tr.failed td { color: #f87171; }
+tr.manual td { color: #fbbf24; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.chip { background: #0f172a; border: 1px solid #334155; border-radius: 20px; padding: 5px 12px; font-size: 0.85rem; }
+dialog { background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 14px; padding: 22px; width: min(440px, 92vw); margin: auto; }
+dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+dialog h2 { margin-bottom: 14px; }
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; font-size: 0.85rem; color: #94a3b8; }
+.field input, .field select, .field textarea { width: 100%; }
+.err { color: #f87171; font-size: 0.85rem; min-height: 1.2em; }
+.btns { display: flex; gap: 10px; margin-top: 8px; }
+footer { text-align: center; color: #64748b; font-size: 0.75rem; margin-top: 20px; }
+
+/* QR generator */
+#q-canvas { display: block; width: 100%; max-width: 380px; height: auto; background: #fff; border-radius: 10px; }
+.note { margin-top: 12px; font-size: 0.85rem; color: #94a3b8; }
+
+/* Calendar icons in company blue (Chrome/Edge); dark colour scheme keeps Firefox/Safari icons visible */
+input[type="date"], input[type="datetime-local"] { color-scheme: dark; }
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E") center / contain no-repeat;
+    cursor: pointer;
+    opacity: 1;
+}
+
+td a { color: #38bdf8; }
+
+/* Map pop-up */
+.mapdlg { width: min(760px, 94vw); }
+.mapdlg iframe { width: 100%; height: 420px; border: 0; border-radius: 10px; background: #0f172a; }
+.mapdlg .note { margin: 10px 0 0; }
+.btn-link { background: #0284c7; color: #fff; padding: 9px 16px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.95rem; }
+
+/* Location picker */
+.pick-bar { display: flex; gap: 10px; margin-bottom: 10px; }
+.pick-bar input { flex: 1; }
+#pickmap { height: 380px; border-radius: 10px; background: #0f172a; }
+
+.mismatch { color: #fbbf24 !important; }
