@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Attendance</title>
+    <link rel="stylesheet" href="style.css?v=1.0.0">
+    <!-- HTML5 QR Code Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+
+        <div class="app-header">
+            <img src="company%20logo1.png" alt="i-Glaze Limited" class="company-logo">
+            <h1>Site Attendance</h1>
+            <p id="app-subtitle">Enter your PIN to check in</p>
+        </div>
+
+        <!-- Screen 1: PIN Pad -->
+        <div id="pin-screen" class="screen-card">
+            <div class="pin-display">
+                <span id="pin-dots" class="dots">••••</span>
+            </div>
+            <div class="keypad">
+                <button class="key" onclick="pressKey('1')">1</button>
+                <button class="key" onclick="pressKey('2')">2</button>
+                <button class="key" onclick="pressKey('3')">3</button>
+                <button class="key" onclick="pressKey('4')">4</button>
+                <button class="key" onclick="pressKey('5')">5</button>
+                <button class="key" onclick="pressKey('6')">6</button>
+                <button class="key" onclick="pressKey('7')">7</button>
+                <button class="key" onclick="pressKey('8')">8</button>
+                <button class="key" onclick="pressKey('9')">9</button>
+                <button class="key action-key" onclick="clearPin()">C</button>
+                <button class="key" onclick="pressKey('0')">0</button>
+                <button class="key action-key" onclick="submitPin()">√</button>
+            </div>
+            <p id="pin-error" class="error-msg"></p>
+        </div>
+
+        <!-- Screen 2: Action Selection & Scanner -->
+        <div id="scanner-screen" class="screen-card hidden">
+            <div class="user-badge">
+                <span id="contractor-greeting">PIN Entered</span>
+            </div>
+
+            <div class="action-toggle">
+                <button id="btn-in" class="toggle-btn active" onclick="setAction('Check-In')">Check In</button>
+                <button id="btn-out" class="toggle-btn" onclick="setAction('Check-Out')">Check Out</button>
+            </div>
+
+            <p class="scan-instructions">Align site QR code inside frame</p>
+
+            <div id="qr-reader"></div>
+
+            <div id="status-card" class="status-card hidden">
+                <p id="status-text">Processing...</p>
+            </div>
+
+            <div id="confirm-box" class="confirm-box hidden">
+                <button class="confirm-yes" onclick="confirmCheckout()">Yes, check out</button>
+                <button class="confirm-no" onclick="declineCheckout()">No</button>
+            </div>
+
+            <div id="nocheckin-box" class="confirm-box hidden">
+                <button class="confirm-yes" onclick="confirmCheckIn()">Yes, check in</button>
+                <button class="confirm-no" onclick="declineCheckIn()">No</button>
+                <button class="forgot-btn" onclick="showManualForm()">I forgot to check in: check out anyway</button>
+            </div>
+
+            <div id="manual-form" class="manual-form hidden">
+                <p class="manual-title">Forgot to check in?</p>
+                <label for="manual-comment">Please provide your check-in time and the reason you didn't check in (required)</label>
+                <textarea id="manual-comment" rows="4" maxlength="300" placeholder="e.g. Arrived at 7:30, forgot to scan the QR code"></textarea>
+                <p class="manual-note">This will be recorded as a manual entry, not a scanned check-in.</p>
+                <p id="manual-error" class="error-msg"></p>
+                <div class="confirm-box">
+                    <button class="confirm-yes" onclick="submitManualCheckout()">Submit check-out</button>
+                    <button class="confirm-no" onclick="cancelManual()">Cancel</button>
+                </div>
+            </div>
+
+            <button id="retry-btn" class="retry-btn hidden" onclick="retryScan()">Try again</button>
+            <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
+
+        <footer class="app-footer">
+            <p>&copy; <span id="footer-year">2026</span> i-Glaze Limited. All rights reserved.</p>
+            <p class="credit">Built by Karl Harris</p>
+            <p class="credit" id="version-line"></p>
+        </footer>
+
+    </div>
+
+    <script src="app.js?v=1.0.0"></script>
+</body>
+</html>
