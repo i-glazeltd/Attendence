@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Site Attendance</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="admin.css?v=1.0.0">
+</head>
+<body>
+    <header>
+        <img src="company%20logo1.png" alt="i-Glaze Limited" class="logo">
+        <div class="title"><h1>Admin Dashboard</h1><span id="who"></span></div>
+        <button class="ghost" onclick="logout()">Log out</button>
+    </header>
+
+    <nav>
+        <button data-tab="hours" class="active">Hours</button>
+        <button data-tab="Users">Users</button>
+        <button data-tab="Sites">Sites</button>
+        <button data-tab="qr">QR Codes</button>
+    </nav>
+
+    <main>
+        <section id="hours">
+            <div class="bar">
+                <label>From <input type="date" id="f-from"></label>
+                <label>To <input type="date" id="f-to"></label>
+                <label>Employee <input type="text" id="f-emp" placeholder="Filter by name"></label>
+                <label class="chk"><input type="checkbox" id="f-failed"> Show failed attempts</label>
+                <button onclick="loadHours()">Load</button>
+                <button class="ghost" onclick="exportCsv()">Export CSV</button>
+            </div>
+            <div id="summary" class="chips"></div>
+            <div class="scroll"><table id="t-hours"></table></div>
+        </section>
+
+        <section id="Users" hidden>
+            <div class="bar"><button onclick="openEdit('Users', 0)">+ Add user</button></div>
+            <div class="scroll"><table id="t-Users"></table></div>
+        </section>
+
+        <section id="Sites" hidden>
+            <div class="bar"><button onclick="openEdit('Sites', 0)">+ Add site</button></div>
+            <div class="scroll"><table id="t-Sites"></table></div>
+        </section>
+
+        <section id="qr" hidden>
+            <div class="bar">
+                <label>Site <select id="q-site"></select></label>
+                <label class="chk"><input type="checkbox" id="q-label" checked> Show site name under code</label>
+                <button onclick="downloadQr()">Download PNG</button>
+            </div>
+            <canvas id="q-canvas"></canvas>
+            <p class="note">The code contains only the Site ID as plain text. Always test-scan a printed code before putting it up.</p>
+        </section>
+    </main>
+
+    <dialog id="dlg">
+        <h2 id="dt"></h2>
+        <div id="df"></div>
+        <p id="de" class="err"></p>
+        <div class="btns"><button id="ds">Save</button><button class="ghost" onclick="dlg.close()">Cancel</button></div>
+    </dialog>
+
+    <dialog id="pickdlg" class="mapdlg">
+        <h2>Pick site location</h2>
+        <div class="pick-bar">
+            <input type="text" id="p-q" placeholder="Search an address, postcode or place">
+            <button onclick="pickSearch()">Search</button>
+        </div>
+        <div id="pickmap"></div>
+        <p id="p-info" class="note">Click the map or drag the pin to set the location. The circle shows the 500m check-in area.</p>
+        <div class="btns"><button id="p-use">Use this location</button><button class="ghost" onclick="pickdlg.close()">Cancel</button></div>
+    </dialog>
+
+    <dialog id="mapdlg" class="mapdlg">
+        <h2 id="mt"></h2>
+        <iframe id="mf" title="Location map" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        <p id="mm" class="note"></p>
+        <div class="btns">
+            <a id="ml" class="btn-link" target="_blank" rel="noopener">Open in Google Maps</a>
+            <button class="ghost" onclick="mapdlg.close()">Close</button>
+        </div>
+    </dialog>
+
+    <footer>&copy; <span id="yr"></span> i-Glaze Limited. All rights reserved. Built by Karl Harris<br><span id="version-line"></span></footer>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="admin.js?v=1.0.0"></script>
+</body>
+</html>
