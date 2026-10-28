@@ -240,3 +240,36 @@ body {
 }
 
 .mismatch { color: #fbbf24 !important; }
+
+/* Menu */
+.menu-card { display: flex; align-items: center; gap: 14px; text-align: left; width: 100%; background: #0f172a; border: 2px solid; border-radius: 16px; padding: 18px; cursor: pointer; color: #fff; }
+.menu-card.attend { border-color: #0284c7; }
+.menu-card.qa { border-color: #16a34a; }
+.menu-icon { font-size: 2.4rem; }
+.menu-text strong { display: block; font-size: 1.05rem; letter-spacing: 0.5px; }
+.menu-card.attend strong { color: #38bdf8; }
+.menu-card.qa strong { color: #4ade80; }
+.menu-text small { color: #cbd5e1; font-size: 0.85rem; }
+
+/* QA inspection */
+.qa-section { text-align: left; }
+.qa-section h3 { font-size: 0.95rem; margin-bottom: 8px; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+.field input, .field select, .qa-check textarea { width: 100%; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; padding: 10px; font-size: 0.95rem; }
+.qa-check { border: 1px solid #0284c7; border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+.qa-check-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.qa-check-head strong { display: block; font-size: 0.9rem; }
+.qa-check-head small { color: #94a3b8; font-size: 0.75rem; }
+.seg { display: flex; gap: 4px; }
+.seg button { border: none; border-radius: 6px; padding: 6px 10px; font-size: 0.75rem; font-weight: bold; color: #fff; cursor: pointer; opacity: 0.45; }
+.seg button.on { opacity: 1; outline: 2px solid #fff; }
+.seg button[data-r="PASS"] { background: #16a34a; }
+.seg button[data-r="FAIL"] { background: #dc2626; }
+.seg button[data-r="NA"] { background: #64748b; }
+.photo-drop { display: block; border: 2px dashed #475569; border-radius: 12px; padding: 18px; cursor: pointer; color: #4ade80; font-weight: bold; }
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.thumb { position: relative; width: 72px; height: 72px; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.thumb button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: #dc2626; color: #fff; cursor: pointer; }
+.qa-submit { background: #0284c7; color: #fff; border: none; border-radius: 30px; padding: 14px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+.qa-draft { background: transparent; border: 2px solid #16a34a; color: #4ade80; border-radius: 30px; padding: 12px; font-weight: bold; cursor: pointer; }
