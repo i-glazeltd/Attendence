@@ -64,3 +64,6 @@ td a { color: #38bdf8; }
 #pickmap { height: 380px; border-radius: 10px; background: #0f172a; }
 
 .mismatch { color: #fbbf24 !important; }
+
+.hdr-actions { display: flex; align-items: center; gap: 10px; }
+#updated { font-size: 0.8rem; color: #94a3b8; }
