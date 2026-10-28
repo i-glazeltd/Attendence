@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.1.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
