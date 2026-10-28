@@ -1,16 +1,35 @@
 // Must match the URL in app.js
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
-// --- Version (change APP_VERSION on every release, and the ?v= numbers in the HTML) ---
-const APP_VERSION = "1.0.0";
+// --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
+const APP_VERSION = "1.0.1";
 let lastScriptV = "";
+
+function cmpVer(a, b) {
+    const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number);
+    for (let i = 0; i < 3; i++) {
+        if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0) ? 1 : -1;
+    }
+    return 0;
+}
 
 function showVersion(scriptV) {
     const el = document.getElementById("version-line");
     if (!el) return;
     if (scriptV) lastScriptV = scriptV;
-    el.textContent = "Page v" + APP_VERSION + (lastScriptV ? " | Script v" + lastScriptV : "");
-    el.classList.toggle("mismatch", !!lastScriptV && lastScriptV !== APP_VERSION);
+    let text = "Page v" + APP_VERSION + (lastScriptV ? " | Script v" + lastScriptV : "");
+    let tip = "";
+    const c = lastScriptV ? cmpVer(APP_VERSION, lastScriptV) : 0;
+    if (c < 0) {
+        text += " - page out of date, press Ctrl+Shift+R";
+        tip = "Latest release is v" + lastScriptV + ". Hard refresh; if it stays on this version, the GitHub files need updating (see README).";
+    } else if (c > 0) {
+        text += " - script needs redeploying";
+        tip = "This page is newer than the script. Paste Code.gs into Apps Script and deploy a new version (see README).";
+    }
+    el.textContent = text;
+    el.title = tip;
+    el.classList.toggle("mismatch", c !== 0);
 }
 
 const token = sessionStorage.getItem("adminToken");
@@ -50,6 +69,16 @@ function logout() { sessionStorage.clear(); location.href = "index.html"; }
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+// ---------- Refresh ----------
+function stamp() {
+    $("updated").innerText = "Updated " + new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
+async function refreshData() {
+    $("updated").innerText = "Refreshing...";
+    await Promise.all([loadLists(), loadHours()]);
+}
+
 // ---------- Tabs ----------
 document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => {
     document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("active", x === b));
@@ -61,7 +90,7 @@ async function loadLists() {
     const r = await api("list");
     if (r.status !== "SUCCESS") return alert(r.reason);
     state.Users = r.Users; state.Sites = r.Sites;
-    renderTable("Users"); renderTable("Sites"); fillQrSites();
+    renderTable("Users"); renderTable("Sites"); fillQrSites(); stamp();
 }
 
 function renderTable(tab) {
@@ -139,6 +168,7 @@ async function loadHours() {
     if (r.status !== "SUCCESS") return alert(r.reason);
     state.logs = r.rows.reverse();   // newest first
     renderHours();
+    stamp();
 }
 
 function renderHours() {
