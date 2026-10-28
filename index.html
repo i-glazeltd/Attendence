@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>i-Glaze Site Portal</title>
-    <link rel="stylesheet" href="style.css?v=1.1.0">
+    <link rel="stylesheet" href="style.css?v=1.2.0">
     <!-- HTML5 QR Code Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -75,7 +75,8 @@
             <p id="qa-msg" class="error-msg"></p>
             <button class="qa-submit" onclick="submitQa()">SUBMIT INSPECTION REPORT</button>
             <button class="qa-draft" onclick="saveQaDraft()">Save Draft</button>
-            <button class="logout-btn" onclick="backToMenu()">&larr; Back to menu</button>
+            <button class="logout-btn back-btn" onclick="backToMenu()">&larr; Back to menu</button>
+            <button class="logout-btn" onclick="logout()">Log out</button>
         </div>
 
         <!-- Screen 4: Action Selection & Scanner -->
@@ -121,7 +122,7 @@
             </div>
 
             <button id="retry-btn" class="retry-btn hidden" onclick="retryScan()">Try again</button>
-            <button class="logout-btn" onclick="backToMenu()">&larr; Back to menu</button>
+            <button class="logout-btn back-btn" onclick="backToMenu()">&larr; Back to menu</button>
             <button class="logout-btn" onclick="logout()">Log out</button>
         </div>
 
@@ -133,6 +134,6 @@
 
     </div>
 
-    <script src="app.js?v=1.1.0"></script>
+    <script src="app.js?v=1.2.0"></script>
 </body>
 </html>
