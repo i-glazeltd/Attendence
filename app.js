@@ -4,7 +4,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6
 const IDLE_LIMIT_MS = 2 * 60 * 1000;
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.0.2";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -19,14 +19,14 @@ function showVersion(scriptV) {
     const el = document.getElementById("version-line");
     if (!el) return;
     if (scriptV) lastScriptV = scriptV;
-    let text = "Page v" + APP_VERSION + (lastScriptV ? " | Script v" + lastScriptV : "");
+    let text = "v" + APP_VERSION;
     let tip = "";
     const c = lastScriptV ? cmpVer(APP_VERSION, lastScriptV) : 0;
     if (c < 0) {
-        text += " - page out of date, press Ctrl+Shift+R";
+        text += " - out of date (latest is v" + lastScriptV + "), press Ctrl+Shift+R";
         tip = "Latest release is v" + lastScriptV + ". Hard refresh; if it stays on this version, the GitHub files need updating (see README).";
     } else if (c > 0) {
-        text += " - script needs redeploying";
+        text += " - script needs redeploying (script is v" + lastScriptV + ")";
         tip = "This page is newer than the script. Paste Code.gs into Apps Script and deploy a new version (see README).";
     }
     el.textContent = text;
