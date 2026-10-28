@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -47,8 +47,8 @@ const SCHEMAS = {
         { l: "Role", o: ["Contractor", "QA", "Contractor/QA", "Admin"] }
     ],
     Sites: [
-        { l: "Site ID" }, { l: "Site name" }, { l: "Latitude" }, { l: "Longitude" },
-        { hidden: true },
+        { hidden: true }, { l: "Site name" }, { l: "Latitude" }, { l: "Longitude" },
+        { l: "Radius (metres)", def: "500" },
         { l: "Status", o: ["Active", "Inactive"] }
     ]
 };
@@ -111,7 +111,7 @@ function openEdit(tab, row) {
     $("de").innerText = "";
     $("df").innerHTML = SCHEMAS[tab].map((f, i) => {
         if (f.hidden) return "";
-        const val = cur ? cur.v[i] : (f.o ? f.o[0] : "");
+        const val = cur ? cur.v[i] : (f.o ? f.o[0] : (f.def || ""));
         const input = f.o
             ? `<select data-i="${i}">${f.o.map((o) => `<option${o === val ? " selected" : ""}>${o}</option>`).join("")}</select>`
             : `<input data-i="${i}" value="${esc(val)}">`;
@@ -138,7 +138,7 @@ async function saveRow(tab, row, cur) {
 
 async function del(tab, row) {
     const cur = state[tab].find((r) => r.row === row);
-    if (!confirm(`Delete "${cur.v[0]}"? This can't be undone.`)) return;
+    if (!confirm(`Delete "${tab === "Sites" ? cur.v[1] : cur.v[0]}"? This can't be undone.`)) return;
     const r = await api("delete", { tab, row, key: cur.v[0] });
     if (r.status !== "SUCCESS") return alert(r.reason);
     loadLists();
@@ -241,7 +241,7 @@ $("f-failed").addEventListener("change", renderHours);
 // ---------- Location picker (Leaflet + OpenStreetMap, free, no API key) ----------
 const pickdlg = $("pickdlg");
 let pickMap = null, pickMarker = null, pickCircle = null, picked = null;
-const RADIUS_M = 500;   // keep in step with MAX_RADIUS_METRES in Code.gs
+let RADIUS_M = 500;   // set from the Radius field each time the picker opens
 
 function setPick(lat, lng) {
     picked = { lat: lat, lng: lng };
@@ -260,6 +260,7 @@ function setPick(lat, lng) {
 function openPicker() {
     if (typeof L === "undefined") return alert("The map couldn't load. Check your internet connection and refresh.");
     const latEl = $("df").querySelector('[data-i="2"]'), lngEl = $("df").querySelector('[data-i="3"]');
+    RADIUS_M = Number($("df").querySelector('[data-i="4"]').value) || 500;
     const has = latEl.value.trim() !== "" && lngEl.value.trim() !== "" && isFinite(Number(latEl.value)) && isFinite(Number(lngEl.value));
     $("p-q").value = "";
     pickdlg.showModal();
@@ -280,7 +281,7 @@ function openPicker() {
             setPick(Number(latEl.value), Number(lngEl.value));
         } else {
             pickMap.setView([52.5, -1.5], 6);
-            $("p-info").innerText = "Search above, or click the map to place the pin. The circle shows the 500m check-in area.";
+            $("p-info").innerText = "Search above, or click the map to place the pin. The blue circle shows the check-in area (the radius you set).";
         }
     }, 60);
 
@@ -375,7 +376,7 @@ logoImg.src = "company%20logo1.png";   // same file as the page logo
 function fillQrSites() {
     const sel = $("q-site"), keep = sel.value;
     sel.innerHTML = state.Sites.map((r) =>
-        `<option value="${esc(r.v[0])}">${esc(r.v[1] || r.v[0])} (${esc(r.v[0])})${r.v[5] === "Inactive" ? " - inactive" : ""}</option>`).join("");
+        `<option value="${esc(r.v[0])}">${esc(r.v[1] || r.v[0])}${r.v[5] === "Inactive" ? " - inactive" : ""}</option>`).join("");
     if (keep) sel.value = keep;
     drawQr();
 }
