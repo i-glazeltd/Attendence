@@ -2,7 +2,7 @@
 
 Staff check in and out by PIN + site QR code. Admins manage users, sites and hours from `admin.html`.
 
-**Current release: 1.1.0**
+**Current release: 1.2.0**
 
 ## Where each file lives
 | File | Goes in |
@@ -28,7 +28,8 @@ The version must match in all of these (change them together, same number):
 3. Wait a minute or two for GitHub Pages, hard refresh (Ctrl+Shift+R), check the footer shows matching versions.
 
 ## Google Sheet tabs
-- **Users:** Name | PIN | Status (Active/Inactive) | Role (Contractor/Admin). Admin PINs must be 6-8 digits.
+- **Users:** Name | PIN | Status (Active/Inactive) | Role. Admin PINs must be 6-8 digits.
+  Roles: `Contractor` (goes straight to Site Attendance), `QA` (straight to the QA inspection), `Contractor/QA` (sees a menu with both; the QA project defaults to the site they're checked in at), `Admin` (dashboard). Blank counts as Contractor.
 - **Sites:** SiteID | SiteName | Latitude | Longitude | (unused) | Status (Active/Inactive)
 - **AuditLog:** Timestamp | Name | Action | Site ID | Site Name | Status | Reason | Dist | Google Maps Link | Check-Out Time | Check-Out Dist | Check-Out Map | User Comments | Admin Comments
 
@@ -38,6 +39,7 @@ The version must match in all of these (change them together, same number):
 Rules: check-in/out only within 500m of the site; anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
 
 ## Changelog
+- **1.2.0** Roles: Contractor, QA, Contractor/QA and Admin decide where people land after their PIN.
 - **1.1.0** Contractor menu (Site Attendance / Quality Assurance) and QA inspection form with photos.
 - **1.0.2** Footer shows just the version number (amber warning only if page and script differ).
 - **1.0.1** Refresh button on the admin dashboard; clearer version mismatch messages; README.
