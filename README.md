@@ -2,7 +2,7 @@
 
 Staff check in and out by PIN + site QR code. Admins manage users, sites and hours from `admin.html`.
 
-**Current release: 1.3.0**
+**Current release: 1.4.0**
 
 ## Where each file lives
 | File | Goes in |
@@ -30,15 +30,17 @@ The version must match in all of these (change them together, same number):
 ## Google Sheet tabs
 - **Users:** Name | PIN | Status (Active/Inactive) | Role. Admin PINs must be 6-8 digits.
   Roles: `Contractor` (goes straight to Site Attendance), `QA` (straight to the QA inspection), `Contractor/QA` (sees a menu with both; the QA project defaults to the site they're checked in at), `Admin` (dashboard). Blank counts as Contractor.
-- **Sites:** SiteID | SiteName | Latitude | Longitude | (unused) | Status (Active/Inactive)
+- **Sites:** SiteID | SiteName | Latitude | Longitude | RadiusMetres | Status (Active/Inactive)
 - **AuditLog:** Timestamp | Name | Action | Site ID | Site Name | Status | Reason | Dist | Google Maps Link | Check-Out Time | Check-Out Dist | Check-Out Map | User Comments | Admin Comments
 
 - **QAReports** (created automatically): Timestamp | Inspector | Site ID | Site Name | Overall | Checks | Photos (links). QA photos are saved in a Google Drive folder called "Site QA Photos" (in the Drive of the account that owns the script). Share that folder with anyone who needs to open the photo links. After first pasting Code.gs, run `setupQaFolder` once in Apps Script to give it Drive permission.
 - QA checklist items are the `QA_CHECKS` list near the top of the QA section in `app.js`.
 
-Rules: check-in/out only within 500m of the site; anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
+Rules: check-in/out only within the site's RadiusMetres (500m if blank); anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
 
 ## Changelog
+- **1.4.0** Each site has its own check-in radius (RadiusMetres), set in the dashboard; the map picker circle follows it.
+- **1.3.1** Adding a site no longer asks for a Site ID: it is filled in automatically from the site name (and kept if the site is renamed, so printed QR codes keep working).
 - **1.3.0** Admin dashboard: QA Reports tab (filter, see results, view photos).
 - **1.2.0** Roles: Contractor, QA, Contractor/QA and Admin decide where people land after their PIN.
 - **1.1.0** Contractor menu (Site Attendance / Quality Assurance) and QA inspection form with photos.
