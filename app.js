@@ -3,16 +3,35 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6
 // If nobody scans anything for this long, the PIN is cleared and the PIN screen returns.
 const IDLE_LIMIT_MS = 2 * 60 * 1000;
 
-// --- Version (change APP_VERSION on every release, and the ?v= numbers in the HTML) ---
-const APP_VERSION = "1.0.0";
+// --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
+const APP_VERSION = "1.0.1";
 let lastScriptV = "";
+
+function cmpVer(a, b) {
+    const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number);
+    for (let i = 0; i < 3; i++) {
+        if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0) ? 1 : -1;
+    }
+    return 0;
+}
 
 function showVersion(scriptV) {
     const el = document.getElementById("version-line");
     if (!el) return;
     if (scriptV) lastScriptV = scriptV;
-    el.textContent = "Page v" + APP_VERSION + (lastScriptV ? " | Script v" + lastScriptV : "");
-    el.classList.toggle("mismatch", !!lastScriptV && lastScriptV !== APP_VERSION);
+    let text = "Page v" + APP_VERSION + (lastScriptV ? " | Script v" + lastScriptV : "");
+    let tip = "";
+    const c = lastScriptV ? cmpVer(APP_VERSION, lastScriptV) : 0;
+    if (c < 0) {
+        text += " - page out of date, press Ctrl+Shift+R";
+        tip = "Latest release is v" + lastScriptV + ". Hard refresh; if it stays on this version, the GitHub files need updating (see README).";
+    } else if (c > 0) {
+        text += " - script needs redeploying";
+        tip = "This page is newer than the script. Paste Code.gs into Apps Script and deploy a new version (see README).";
+    }
+    el.textContent = text;
+    el.title = tip;
+    el.classList.toggle("mismatch", c !== 0);
 }
 
 let enteredPin = "";
