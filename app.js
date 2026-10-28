@@ -4,7 +4,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6
 const IDLE_LIMIT_MS = 2 * 60 * 1000;
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -37,6 +37,8 @@ function showVersion(scriptV) {
 let userName = "";
 let userSites = [];
 let wasCheckedIn = false;
+let checkedInSiteId = "";
+let userRole = "Contractor";
 let enteredPin = "";
 let currentAction = "Check-In";
 let html5QrCode = null;
@@ -125,7 +127,15 @@ async function submitPin() {
         userName = result.name;
         userSites = result.sites || [];
         wasCheckedIn = !!result.checkedIn;
-        openMenu();
+        checkedInSiteId = result.checkedInSiteId || "";
+        userRole = result.role || "Contractor";
+
+        // "Back to menu" only makes sense for people who have both options
+        document.querySelectorAll(".back-btn").forEach((b) => b.classList.toggle("hidden", userRole !== "Contractor/QA"));
+
+        if (userRole === "QA") openQa();
+        else if (userRole === "Contractor/QA") openMenu();
+        else openAttendance();
     } catch (err) {
         errorEl.innerText = "Could not reach the server. Check your signal and try again.";
     } finally {
@@ -421,6 +431,9 @@ function openQa() {
     renderThumbs();
     qaMsg("");
     loadQaDraft();
+    // If they're checked in, default the project to the site they're checked in at
+    const proj = document.getElementById("qa-project");
+    if (!proj.value && checkedInSiteId) proj.value = checkedInSiteId;
     showScreen("qa", "Quality Assurance", "Inspection report");
     startIdleTimer(QA_IDLE_MS);
 }
@@ -499,7 +512,7 @@ async function submitQa() {
         if (r.status === "SUCCESS") {
             try { localStorage.removeItem(qaDraftKey()); } catch (err) {}
             qaMsg("√ Inspection report submitted. Thank you.", true);
-            setTimeout(openMenu, 2500);
+            setTimeout(userRole === "Contractor/QA" ? openMenu : () => location.reload(), 2500);
         } else {
             qaMsg(r.reason || "Something went wrong. Please try again.");
         }
