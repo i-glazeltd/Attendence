@@ -4,7 +4,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6
 const IDLE_LIMIT_MS = 2 * 60 * 1000;
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.1.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -34,6 +34,9 @@ function showVersion(scriptV) {
     el.classList.toggle("mismatch", c !== 0);
 }
 
+let userName = "";
+let userSites = [];
+let wasCheckedIn = false;
 let enteredPin = "";
 let currentAction = "Check-In";
 let html5QrCode = null;
@@ -56,9 +59,9 @@ async function callBackend(payload) {
 }
 
 // --- Idle timeout / log out ---
-function startIdleTimer() {
+function startIdleTimer(ms) {
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => { location.reload(); }, IDLE_LIMIT_MS);
+    idleTimer = setTimeout(() => { location.reload(); }, ms || IDLE_LIMIT_MS);
 }
 
 function logout() {
@@ -119,20 +122,49 @@ async function submitPin() {
         }
 
         errorEl.innerText = "";
-        document.getElementById("contractor-greeting").innerText = result.checkedIn
-            ? `Welcome, ${result.name}. You're currently checked in.`
-            : `Welcome, ${result.name}`;
-        setAction(result.checkedIn ? "Check-Out" : "Check-In");
-        document.getElementById("pin-screen").classList.add("hidden");
-        document.getElementById("scanner-screen").classList.remove("hidden");
-        document.getElementById("app-subtitle").innerText = "Scan site QR code";
-        startIdleTimer();
-        startCameraScanner();
+        userName = result.name;
+        userSites = result.sites || [];
+        wasCheckedIn = !!result.checkedIn;
+        openMenu();
     } catch (err) {
         errorEl.innerText = "Could not reach the server. Check your signal and try again.";
     } finally {
         busy = false;
     }
+}
+
+// --- Screens ---
+function showScreen(name, title, sub) {
+    ["pin", "menu", "scanner", "qa"].forEach((x) => {
+        document.getElementById(x + "-screen").classList.toggle("hidden", x !== name);
+    });
+    document.getElementById("app-title").innerText = title;
+    document.getElementById("app-subtitle").innerText = sub;
+    window.scrollTo(0, 0);
+}
+
+function openMenu() {
+    showScreen("menu", "Logged in: " + userName, "Please select an option");
+    startIdleTimer();
+}
+
+function openAttendance() {
+    document.getElementById("contractor-greeting").innerText = wasCheckedIn
+        ? `Welcome, ${userName}. You're currently checked in.`
+        : `Welcome, ${userName}`;
+    setAction(wasCheckedIn ? "Check-Out" : "Check-In");
+    showScreen("scanner", "Site Attendance", "Scan site QR code");
+    startIdleTimer();
+    startCameraScanner();
+}
+
+function backToMenu() {
+    try { if (html5QrCode) html5QrCode.stop().catch(() => {}); } catch (err) {}
+    ["status-card", "retry-btn", "confirm-box", "nocheckin-box", "manual-form"].forEach((id) => {
+        document.getElementById(id).classList.add("hidden");
+    });
+    pendingScan = null;
+    openMenu();
 }
 
 // --- Action Toggle Logic ---
@@ -348,6 +380,151 @@ async function submitManualCheckout() {
 
 // Typing a comment counts as activity, so the idle log-out doesn't interrupt it
 document.getElementById("manual-comment").addEventListener("input", startIdleTimer);
+
+// --- Quality Assurance inspection ---
+// To change the checklist, edit this list (id must be unique, no spaces).
+const QA_CHECKS = [
+    { id: "frame", title: "Frame Installation Check", desc: "Verify frame plumb, level, and square." },
+    { id: "seals", title: "Weather Seals & Gaskets", desc: "Inspect external and internal seals for integrity." },
+    { id: "hardware", title: "Hardware Functionality", desc: "Confirm correct operation of all window/door hardware." }
+];
+const QA_IDLE_MS = 15 * 60 * 1000;   // longer idle limit while filling in a report
+const QA_MAX_PHOTOS = 6;
+let qaPhotos = [];
+let qaResults = {};
+
+const escHtml = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const qaMsg = (t, ok) => {
+    const el = document.getElementById("qa-msg");
+    el.innerText = t;
+    el.style.color = ok ? "#4ade80" : "";
+};
+
+function openQa() {
+    document.getElementById("qa-project").innerHTML = '<option value="">Select project...</option>' +
+        userSites.map((x) => `<option value="${escHtml(x.id)}">${escHtml(x.name)}</option>`).join("");
+    document.getElementById("qa-inspector").value = userName;
+    document.getElementById("qa-date").value = new Date().toLocaleDateString("en-GB");
+
+    qaResults = {};
+    qaPhotos = [];
+    document.getElementById("qa-checks").innerHTML = QA_CHECKS.map((c) => `
+        <div class="qa-check">
+            <div class="qa-check-head">
+                <div><strong>${escHtml(c.title)}</strong><small>${escHtml(c.desc)}</small></div>
+                <div class="seg" data-id="${c.id}">
+                    <button type="button" data-r="PASS">PASS</button><button type="button" data-r="FAIL">FAIL</button><button type="button" data-r="NA">N/A</button>
+                </div>
+            </div>
+            <textarea id="qn-${c.id}" rows="2" maxlength="300" placeholder="Notes/Defects"></textarea>
+        </div>`).join("");
+    renderThumbs();
+    qaMsg("");
+    loadQaDraft();
+    showScreen("qa", "Quality Assurance", "Inspection report");
+    startIdleTimer(QA_IDLE_MS);
+}
+
+function setQaResult(id, result) {
+    qaResults[id] = result;
+    document.querySelectorAll(`.seg[data-id="${id}"] button`).forEach((b) => b.classList.toggle("on", b.dataset.r === result));
+}
+
+function resizeImage(file) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const k = Math.min(1, 1280 / Math.max(img.width, img.height));
+            const c = document.createElement("canvas");
+            c.width = Math.round(img.width * k);
+            c.height = Math.round(img.height * k);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            URL.revokeObjectURL(img.src);
+            resolve(c.toDataURL("image/jpeg", 0.7));
+        };
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+function renderThumbs() {
+    document.getElementById("qa-thumbs").innerHTML = qaPhotos.map((p, i) =>
+        `<div class="thumb"><img src="${p}" alt="Photo ${i + 1}"><button type="button" onclick="removePhoto(${i})">&times;</button></div>`).join("");
+}
+
+function removePhoto(i) { qaPhotos.splice(i, 1); renderThumbs(); }
+
+function qaDraftKey() { return "qaDraft:" + userName; }
+
+function saveQaDraft() {
+    const draft = { project: document.getElementById("qa-project").value, results: qaResults, notes: {} };
+    QA_CHECKS.forEach((c) => { draft.notes[c.id] = document.getElementById("qn-" + c.id).value; });
+    try {
+        localStorage.setItem(qaDraftKey(), JSON.stringify(draft));
+        qaMsg("Draft saved on this device. Photos are not kept in drafts.", true);
+    } catch (err) {
+        qaMsg("Couldn't save the draft on this device.");
+    }
+}
+
+function loadQaDraft() {
+    try {
+        const d = JSON.parse(localStorage.getItem(qaDraftKey()) || "null");
+        if (!d) return;
+        if (d.project) document.getElementById("qa-project").value = d.project;
+        QA_CHECKS.forEach((c) => {
+            if (d.results && d.results[c.id]) setQaResult(c.id, d.results[c.id]);
+            document.getElementById("qn-" + c.id).value = (d.notes && d.notes[c.id]) || "";
+        });
+        qaMsg("Draft restored. Add your photos again.", true);
+    } catch (err) {}
+}
+
+async function submitQa() {
+    if (busy) return;
+    const siteId = document.getElementById("qa-project").value;
+    if (!siteId) return qaMsg("Please choose the project.");
+
+    const checks = [];
+    for (const c of QA_CHECKS) {
+        const result = qaResults[c.id], notes = document.getElementById("qn-" + c.id).value.trim();
+        if (!result) return qaMsg(`Please mark a result for "${c.title}".`);
+        if (result === "FAIL" && !notes) return qaMsg(`Please add notes/defects for "${c.title}".`);
+        checks.push({ item: c.title, result: result, notes: notes });
+    }
+
+    busy = true;
+    qaMsg(qaPhotos.length ? "Uploading report and photos..." : "Submitting report...", true);
+    try {
+        const r = await callBackend({ type: "qa", pin: enteredPin, siteId: siteId, checks: checks, photos: qaPhotos });
+        if (r.status === "SUCCESS") {
+            try { localStorage.removeItem(qaDraftKey()); } catch (err) {}
+            qaMsg("√ Inspection report submitted. Thank you.", true);
+            setTimeout(openMenu, 2500);
+        } else {
+            qaMsg(r.reason || "Something went wrong. Please try again.");
+        }
+    } catch (err) {
+        qaMsg("Network issue. Your answers are still here, please try again.");
+    } finally {
+        busy = false;
+    }
+}
+
+document.getElementById("qa-checks").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-r]");
+    if (b) setQaResult(b.parentElement.dataset.id, b.dataset.r);
+});
+
+document.getElementById("qa-file").addEventListener("change", async (e) => {
+    const files = Array.from(e.target.files).slice(0, QA_MAX_PHOTOS - qaPhotos.length);
+    for (const f of files) qaPhotos.push(await resizeImage(f));
+    e.target.value = "";
+    renderThumbs();
+});
+
+// Typing or tapping in the report counts as activity
+["input", "click"].forEach((ev) =>
+    document.getElementById("qa-screen").addEventListener(ev, () => startIdleTimer(QA_IDLE_MS)));
 
 // --- Keyboard entry on the PIN screen (handy on desktop) ---
 document.addEventListener("keydown", (e) => {
