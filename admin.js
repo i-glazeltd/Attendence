@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -37,7 +37,7 @@ if (!token) location.href = "index.html";
 
 const $ = (id) => document.getElementById(id);
 const dlg = $("dlg");
-const state = { Users: [], Sites: [], logs: [] };
+const state = { Users: [], Sites: [], logs: [], qa: null };
 
 const SCHEMAS = {
     Users: [
@@ -76,13 +76,14 @@ function stamp() {
 
 async function refreshData() {
     $("updated").innerText = "Refreshing...";
-    await Promise.all([loadLists(), loadHours()]);
+    await Promise.all([loadLists(), loadHours(), state.qa ? loadQa() : null]);
 }
 
 // ---------- Tabs ----------
 document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => {
     document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("active", x === b));
-    ["hours", "Users", "Sites", "qr"].forEach((t) => { $(t).hidden = t !== b.dataset.tab; });
+    ["hours", "qareports", "Users", "Sites", "qr"].forEach((t) => { $(t).hidden = t !== b.dataset.tab; });
+    if (b.dataset.tab === "qareports" && !state.qa) loadQa();
 }));
 
 // ---------- Users & Sites ----------
@@ -327,6 +328,45 @@ function showMap(row, which) {
     mapdlg.showModal();
 }
 
+// ---------- QA reports ----------
+const photodlg = $("photodlg");
+
+async function loadQa() {
+    const r = await api("qaList", { from: $("qa-from").value, to: $("qa-to").value });
+    if (r.status !== "SUCCESS") return alert(r.reason);
+    state.qa = r.rows.reverse();   // newest first
+    renderQa();
+    stamp();
+}
+
+function renderQa() {
+    const q = $("qa-search").value.trim().toLowerCase(), onlyFail = $("qa-fails").checked;
+    const rows = (state.qa || []).filter((r) =>
+        (!onlyFail || r.v[4] === "FAIL") && (!q || (r.v[1] + " " + r.v[2] + " " + r.v[3]).toLowerCase().includes(q)));
+    $("t-qa").innerHTML = "<tr><th>Date</th><th>Inspector</th><th>Site</th><th>Overall</th><th>Checks</th><th>Photos</th></tr>" +
+        rows.map((r) => {
+            const v = r.v;
+            const checks = v[5].split("\n").map((l) => `<div class="${l.includes(": FAIL") ? "failtxt" : ""}">${esc(l)}</div>`).join("");
+            return `<tr><td>${esc(dmy(v[0]))}</td><td>${esc(v[1])}</td><td>${esc(v[3] || v[2])}</td>` +
+                   `<td class="${v[4] === "FAIL" ? "failtxt" : "oktxt"}"><b>${esc(v[4])}</b></td><td>${checks}</td>` +
+                   `<td>${v[6] ? `<button class="small" onclick="showPhotos(${r.row})">View ${v[6]}</button>` : "-"}</td></tr>`;
+        }).join("");
+}
+
+async function showPhotos(row) {
+    const rep = state.qa.find((x) => x.row === row);
+    $("ph-title").innerText = `${rep.v[1]}: ${rep.v[3] || rep.v[2]} (${dmy(rep.v[0])})`;
+    $("ph-grid").innerHTML = "Loading photos...";
+    photodlg.showModal();
+    const r = await api("qaPhotos", { row: row });
+    $("ph-grid").innerHTML = r.status === "SUCCESS"
+        ? r.photos.map((p, i) => `<img src="${p}" alt="Photo ${i + 1}">`).join("")
+        : esc(r.reason);
+}
+
+$("qa-search").addEventListener("input", renderQa);
+$("qa-fails").addEventListener("change", renderQa);
+
 // ---------- QR codes ----------
 const logoImg = new Image();
 logoImg.onload = drawQr;
@@ -422,5 +462,7 @@ const today = new Date(), weekAgo = new Date(Date.now() - 6 * 864e5);
 const iso = (d) => d.toLocaleDateString("en-CA");
 $("f-from").value = iso(weekAgo);
 $("f-to").value = iso(today);
+$("qa-from").value = iso(new Date(Date.now() - 29 * 864e5));
+$("qa-to").value = iso(today);
 loadLists();
 loadHours();
