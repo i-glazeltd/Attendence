@@ -2,7 +2,7 @@
 
 Staff check in and out by PIN + site QR code. Admins manage users, sites and hours from `admin.html`.
 
-**Current release: 1.0.1**
+**Current release: 1.0.2**
 
 ## Where each file lives
 | File | Goes in |
@@ -13,9 +13,9 @@ Staff check in and out by PIN + site QR code. Admins manage users, sites and hou
 | `Code.gs` | Google Apps Script (Extensions > Apps Script in the Google Sheet), NOT in GitHub |
 
 ## Version numbers (how to tell what's loaded)
-The footer of both pages shows `Page v... | Script v...`.
-- Both the same: everything is up to date.
-- Amber text: they differ. "Page out of date" means press Ctrl+Shift+R, and if that doesn't fix it the GitHub files need updating. "Script needs redeploying" means Code.gs in Apps Script needs a new deployment.
+The footer of both pages shows the version, e.g. `v1.0.2`.
+- Plain grey `v1.0.2`: the page and the script match, so everything is up to date.
+- Amber text: the page and script versions differ. "Out of date" means press Ctrl+Shift+R, and if that doesn't fix it the GitHub files need updating. "Script needs redeploying" means Code.gs in Apps Script needs a new deployment.
 
 The version must match in all of these (change them together, same number):
 1. `APP_VERSION` at the top of `app.js` and `admin.js`
@@ -35,6 +35,7 @@ The version must match in all of these (change them together, same number):
 Rules: check-in/out only within 500m of the site; anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
 
 ## Changelog
+- **1.0.2** Footer shows just the version number (amber warning only if page and script differ).
 - **1.0.1** Refresh button on the admin dashboard; clearer version mismatch messages; README.
 - **1.0.0** Version numbers in the footer; location picker; QR generator; admin dashboard; manual check-out; auto log-out.
 
