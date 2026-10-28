@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Site Attendance</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="admin.css?v=1.3.0">
+    <link rel="stylesheet" href="admin.css?v=1.4.0">
 </head>
 <body>
     <header>
@@ -86,7 +86,7 @@
             <button onclick="pickSearch()">Search</button>
         </div>
         <div id="pickmap"></div>
-        <p id="p-info" class="note">Click the map or drag the pin to set the location. The circle shows the 500m check-in area.</p>
+        <p id="p-info" class="note">Click the map or drag the pin to set the location. The blue circle shows the check-in area (the radius you set).</p>
         <div class="btns"><button id="p-use">Use this location</button><button class="ghost" onclick="pickdlg.close()">Cancel</button></div>
     </dialog>
 
@@ -109,6 +109,6 @@
     <footer>&copy; <span id="yr"></span> i-Glaze Limited. All rights reserved. Built by Karl Harris<br><span id="version-line"></span></footer>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="admin.js?v=1.3.0"></script>
+    <script src="admin.js?v=1.4.0"></script>
 </body>
 </html>
