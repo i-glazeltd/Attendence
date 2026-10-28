@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.2.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -44,7 +44,7 @@ const SCHEMAS = {
         { l: "Name" },
         { l: "PIN (4 digits; admins 6-8)", mask: true },
         { l: "Status", o: ["Active", "Inactive"] },
-        { l: "Role", o: ["Contractor", "Admin"] }
+        { l: "Role", o: ["Contractor", "QA", "Contractor/QA", "Admin"] }
     ],
     Sites: [
         { l: "Site ID" }, { l: "Site name" }, { l: "Latitude" }, { l: "Longitude" },
