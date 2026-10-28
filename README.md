@@ -2,7 +2,7 @@
 
 Staff check in and out by PIN + site QR code. Admins manage users, sites and hours from `admin.html`.
 
-**Current release: 1.2.0**
+**Current release: 1.3.0**
 
 ## Where each file lives
 | File | Goes in |
@@ -39,6 +39,7 @@ The version must match in all of these (change them together, same number):
 Rules: check-in/out only within 500m of the site; anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
 
 ## Changelog
+- **1.3.0** Admin dashboard: QA Reports tab (filter, see results, view photos).
 - **1.2.0** Roles: Contractor, QA, Contractor/QA and Admin decide where people land after their PIN.
 - **1.1.0** Contractor menu (Site Attendance / Quality Assurance) and QA inspection form with photos.
 - **1.0.2** Footer shows just the version number (amber warning only if page and script differ).
