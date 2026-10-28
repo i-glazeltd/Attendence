@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Attendance</title>
-    <link rel="stylesheet" href="style.css?v=1.0.2">
+    <title>i-Glaze Site Portal</title>
+    <link rel="stylesheet" href="style.css?v=1.1.0">
     <!-- HTML5 QR Code Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -14,8 +14,8 @@
 
         <div class="app-header">
             <img src="company%20logo1.png" alt="i-Glaze Limited" class="company-logo">
-            <h1>Site Attendance</h1>
-            <p id="app-subtitle">Enter your PIN to check in</p>
+            <h1 id="app-title">Site Login</h1>
+            <p id="app-subtitle">Enter your PIN</p>
         </div>
 
         <!-- Screen 1: PIN Pad -->
@@ -40,7 +40,45 @@
             <p id="pin-error" class="error-msg"></p>
         </div>
 
-        <!-- Screen 2: Action Selection & Scanner -->
+        <!-- Screen 2: Menu -->
+        <div id="menu-screen" class="screen-card hidden">
+            <button class="menu-card attend" onclick="openAttendance()">
+                <span class="menu-icon">&#128338;</span>
+                <span class="menu-text"><strong>SITE ATTENDANCE</strong><small>Log Site Check In / Out</small></span>
+            </button>
+            <button class="menu-card qa" onclick="openQa()">
+                <span class="menu-icon">&#128203;</span>
+                <span class="menu-text"><strong>QUALITY ASSURANCE</strong><small>Record Site QA Inspection</small></span>
+            </button>
+            <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
+
+        <!-- Screen 3: Quality Assurance inspection -->
+        <div id="qa-screen" class="screen-card hidden">
+            <div class="qa-section">
+                <h3>Site &amp; Inspector Details</h3>
+                <label class="field">Project<select id="qa-project"></select></label>
+                <label class="field">Inspector<input id="qa-inspector" readonly></label>
+                <label class="field">Date<input id="qa-date" readonly></label>
+            </div>
+            <div class="qa-section">
+                <h3>QA Checks</h3>
+                <div id="qa-checks"></div>
+            </div>
+            <div class="qa-section">
+                <h3>Attach Site Photos</h3>
+                <label class="photo-drop">&#128247; Tap to take/upload photo
+                    <input type="file" id="qa-file" accept="image/*" multiple hidden>
+                </label>
+                <div id="qa-thumbs" class="thumbs"></div>
+            </div>
+            <p id="qa-msg" class="error-msg"></p>
+            <button class="qa-submit" onclick="submitQa()">SUBMIT INSPECTION REPORT</button>
+            <button class="qa-draft" onclick="saveQaDraft()">Save Draft</button>
+            <button class="logout-btn" onclick="backToMenu()">&larr; Back to menu</button>
+        </div>
+
+        <!-- Screen 4: Action Selection & Scanner -->
         <div id="scanner-screen" class="screen-card hidden">
             <div class="user-badge">
                 <span id="contractor-greeting">PIN Entered</span>
@@ -83,6 +121,7 @@
             </div>
 
             <button id="retry-btn" class="retry-btn hidden" onclick="retryScan()">Try again</button>
+            <button class="logout-btn" onclick="backToMenu()">&larr; Back to menu</button>
             <button class="logout-btn" onclick="logout()">Log out</button>
         </div>
 
@@ -94,6 +133,6 @@
 
     </div>
 
-    <script src="app.js?v=1.0.2"></script>
+    <script src="app.js?v=1.1.0"></script>
 </body>
 </html>
