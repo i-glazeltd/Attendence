@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.5.2";
+const APP_VERSION = "1.5.3";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -48,7 +48,7 @@ const SCHEMAS = {
     ],
     Sites: [
         { hidden: true }, { l: "Site name" }, { l: "Latitude" }, { l: "Longitude" },
-        { l: "Radius (metres)", def: "500" },
+        { l: "Radius (metres)", def: "125" },
         { l: "Status", o: ["Active", "Inactive"] }
     ]
 };
@@ -245,7 +245,7 @@ $("f-failed").addEventListener("change", renderHours);
 // ---------- Location picker (Leaflet + OpenStreetMap, free, no API key) ----------
 const pickdlg = $("pickdlg");
 let pickMap = null, pickMarker = null, pickCircle = null, picked = null;
-let RADIUS_M = 500;   // set from the Radius field each time the picker opens
+let RADIUS_M = 125;   // set from the Radius field each time the picker opens
 
 function setPick(lat, lng) {
     picked = { lat: lat, lng: lng };
@@ -263,7 +263,7 @@ function setPick(lat, lng) {
 
 // Radius slider + number box: the circle on the map follows as you change it
 function setRadius(v, fit) {
-    v = Math.min(5000, Math.max(20, Math.round(Number(v) || 500)));
+    v = Math.min(5000, Math.max(20, Math.round(Number(v) || 125)));
     RADIUS_M = v;
     $("p-rad").value = Math.min(v, 2000);   // slider covers 20-2000m; the box accepts up to 5000m
     $("p-radnum").value = v;
@@ -284,7 +284,7 @@ function openPicker() {
     if (typeof L === "undefined") return alert("The map couldn't load. Check your internet connection and refresh.");
     const latEl = $("df").querySelector('[data-i="2"]'), lngEl = $("df").querySelector('[data-i="3"]');
     const radEl = $("df").querySelector('[data-i="4"]');
-    setRadius(Number(radEl.value) || 500, false);
+    setRadius(Number(radEl.value) || 125, false);
     const has = latEl.value.trim() !== "" && lngEl.value.trim() !== "" && isFinite(Number(latEl.value)) && isFinite(Number(lngEl.value));
     $("p-q").value = "";
     pickdlg.showModal();
