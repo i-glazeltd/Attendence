@@ -4,7 +4,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6
 const IDLE_LIMIT_MS = 2 * 60 * 1000;
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.5.1";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
