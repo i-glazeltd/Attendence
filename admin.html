@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Site Attendance</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="admin.css?v=1.5.0">
+    <link rel="stylesheet" href="admin.css?v=1.5.1">
 </head>
 <body>
     <header>
@@ -101,9 +101,15 @@
         <div class="btns"><button id="p-use">Use this location</button><button class="ghost" onclick="pickdlg.close()">Cancel</button></div>
     </dialog>
 
-    <dialog id="photodlg" class="mapdlg">
+    <dialog id="photodlg" class="mapdlg photodlg">
         <h2 id="ph-title"></h2>
-        <div id="ph-grid" class="ph-grid"></div>
+        <div class="ph-stage">
+            <button class="ghost ph-nav" onclick="phStep(-1)" aria-label="Previous photo">&#8249;</button>
+            <img id="ph-main" alt="QA photo">
+            <button class="ghost ph-nav" onclick="phStep(1)" aria-label="Next photo">&#8250;</button>
+        </div>
+        <p id="ph-count" class="note"></p>
+        <div id="ph-thumbs" class="ph-thumbs"></div>
         <div class="btns"><button class="ghost" onclick="photodlg.close()">Close</button></div>
     </dialog>
 
@@ -120,7 +126,7 @@
     <footer>&copy; <span id="yr"></span> i-Glaze Limited. All rights reserved. Built by Karl Harris<br><span id="version-line"></span></footer>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="invoice.js?v=1.5.0"></script>
-    <script src="admin.js?v=1.5.0"></script>
+    <script src="invoice.js?v=1.5.1"></script>
+    <script src="admin.js?v=1.5.1"></script>
 </body>
 </html>
