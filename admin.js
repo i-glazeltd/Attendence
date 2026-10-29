@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.5.1";
+const APP_VERSION = "1.5.2";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -261,10 +261,30 @@ function setPick(lat, lng) {
     $("p-info").innerText = `Selected: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 }
 
+// Radius slider + number box: the circle on the map follows as you change it
+function setRadius(v, fit) {
+    v = Math.min(5000, Math.max(20, Math.round(Number(v) || 500)));
+    RADIUS_M = v;
+    $("p-rad").value = Math.min(v, 2000);   // slider covers 20-2000m; the box accepts up to 5000m
+    $("p-radnum").value = v;
+    if (pickCircle) pickCircle.setRadius(v);
+    if (fit) fitCircle();
+}
+
+function fitCircle() {
+    if (pickCircle) pickMap.fitBounds(pickCircle.getBounds(), { maxZoom: 18, padding: [20, 20] });
+}
+
+$("p-rad").addEventListener("input", () => setRadius($("p-rad").value, false));
+$("p-rad").addEventListener("change", () => fitCircle());
+$("p-radnum").addEventListener("input", () => { if (Number($("p-radnum").value) >= 20) setRadius($("p-radnum").value, false); });
+$("p-radnum").addEventListener("change", () => setRadius($("p-radnum").value, true));
+
 function openPicker() {
     if (typeof L === "undefined") return alert("The map couldn't load. Check your internet connection and refresh.");
     const latEl = $("df").querySelector('[data-i="2"]'), lngEl = $("df").querySelector('[data-i="3"]');
-    RADIUS_M = Number($("df").querySelector('[data-i="4"]').value) || 500;
+    const radEl = $("df").querySelector('[data-i="4"]');
+    setRadius(Number(radEl.value) || 500, false);
     const has = latEl.value.trim() !== "" && lngEl.value.trim() !== "" && isFinite(Number(latEl.value)) && isFinite(Number(lngEl.value));
     $("p-q").value = "";
     pickdlg.showModal();
@@ -283,9 +303,10 @@ function openPicker() {
         if (has) {
             pickMap.setView([Number(latEl.value), Number(lngEl.value)], 17);
             setPick(Number(latEl.value), Number(lngEl.value));
+            fitCircle();
         } else {
             pickMap.setView([52.5, -1.5], 6);
-            $("p-info").innerText = "Search above, or click the map to place the pin. The blue circle shows the check-in area (the radius you set).";
+            $("p-info").innerText = "Search above, or click the map to place the pin. Use the slider or box below to set the check-in radius (the blue circle).";
         }
     }, 60);
 
@@ -293,6 +314,7 @@ function openPicker() {
         if (!picked) { $("p-info").innerText = "Click the map to choose a spot first."; return; }
         latEl.value = picked.lat.toFixed(6);
         lngEl.value = picked.lng.toFixed(6);
+        radEl.value = String(RADIUS_M);
         pickdlg.close();
     };
 }
@@ -308,6 +330,7 @@ async function pickSearch() {
         const lat = Number(hits[0].lat), lng = Number(hits[0].lon);
         pickMap.setView([lat, lng], 17);
         setPick(lat, lng);
+        fitCircle();
     } catch (err) {
         $("p-info").innerText = "Search failed. Check your connection, or click the map instead.";
     }
