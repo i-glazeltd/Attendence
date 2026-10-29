@@ -4,7 +4,7 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6
 const IDLE_LIMIT_MS = 2 * 60 * 1000;
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.5.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -132,6 +132,7 @@ async function submitPin() {
 
         // "Back to menu" only makes sense for people who have both options
         document.querySelectorAll(".back-btn").forEach((b) => b.classList.toggle("hidden", userRole !== "Contractor/QA"));
+        document.querySelectorAll(".hours-btn").forEach((b) => b.classList.toggle("hidden", userRole !== "Contractor"));
 
         if (userRole === "QA") openQa();
         else if (userRole === "Contractor/QA") openMenu();
@@ -145,7 +146,7 @@ async function submitPin() {
 
 // --- Screens ---
 function showScreen(name, title, sub) {
-    ["pin", "menu", "scanner", "qa"].forEach((x) => {
+    ["pin", "menu", "scanner", "qa", "hours", "invoice"].forEach((x) => {
         document.getElementById(x + "-screen").classList.toggle("hidden", x !== name);
     });
     document.getElementById("app-title").innerText = title;
@@ -538,6 +539,173 @@ document.getElementById("qa-file").addEventListener("change", async (e) => {
 // Typing or tapping in the report counts as activity
 ["input", "click"].forEach((ev) =>
     document.getElementById("qa-screen").addEventListener(ev, () => startIdleTimer(QA_IDLE_MS)));
+
+// --- My hours & invoices ---
+let weekOffset = 0;
+let hoursData = null;
+let lastInvoice = null;
+
+const isoDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const dmyFull = (s) => s.slice(8, 10) + "/" + s.slice(5, 7) + "/" + s.slice(0, 4);
+const dmyShort = (s) => s.slice(8, 10) + "/" + s.slice(5, 7);
+const hmText = (m) => `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}m`;
+const gbp = (n) => "\u00A3" + Number(n).toFixed(2);
+
+function weekRange() {   // Monday to Sunday
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + weekOffset * 7);
+    const from = isoDate(d);
+    d.setDate(d.getDate() + 6);
+    return { from: from, to: isoDate(d) };
+}
+
+function weekDays(from) {
+    const out = [], d = new Date(from + "T12:00:00");
+    for (let i = 0; i < 7; i++) { out.push(isoDate(d)); d.setDate(d.getDate() + 1); }
+    return out;
+}
+
+function dayMinutes() {
+    const m = {};
+    hoursData.shifts.forEach((s) => { m[s.day] = (m[s.day] || 0) + s.mins; });
+    return m;
+}
+
+function openHours() {
+    weekOffset = 0;
+    showScreen("hours", "My Hours", "Completed shifts");
+    startIdleTimer(QA_IDLE_MS);
+    loadHours();
+}
+
+function hoursBack() { if (userRole === "Contractor/QA") openMenu(); else openAttendance(); }
+
+function shiftWeek(n) {
+    weekOffset = Math.min(0, weekOffset + n);   // no future weeks
+    loadHours();
+}
+
+async function loadHours() {
+    const { from, to } = weekRange(), msg = document.getElementById("hours-msg");
+    document.getElementById("week-label").innerText = `${dmyFull(from)} - ${dmyFull(to)}`;
+    msg.innerText = "Loading...";
+    try {
+        const r = await callBackend({ type: "hours", pin: enteredPin, from: from, to: to });
+        if (r.status !== "SUCCESS") { msg.innerText = r.reason || "Could not load your hours."; return; }
+        msg.innerText = "";
+        hoursData = { from: from, to: to, shifts: r.shifts, incomplete: r.incomplete, invoice: r.invoice };
+        lastInvoice = null;
+        renderHours();
+    } catch (err) {
+        msg.innerText = "Network issue. Please try again.";
+    }
+}
+
+function renderHours() {
+    const rows = hoursData.shifts.map((s) =>
+        `<tr><td>${dmyShort(s.day)}</td><td>${escHtml(s.site)}</td><td>${s.inT}</td><td>${s.outT}</td><td>${hmText(s.mins)}</td></tr>`).join("");
+    document.getElementById("t-shifts").innerHTML =
+        "<tr><th>Date</th><th>Site</th><th>In</th><th>Out</th><th>Hours</th></tr>" +
+        (rows || '<tr><td colspan="5">No completed shifts this week</td></tr>');
+    document.getElementById("hours-total").innerText = hmText(hoursData.shifts.reduce((a, s) => a + s.mins, 0));
+
+    let note = "";
+    if (hoursData.incomplete) note += `${hoursData.incomplete} shift(s) have no check-out and aren't counted until an admin corrects them. `;
+    if (hoursData.invoice) note += `Invoice submitted ${dmyFull(hoursData.invoice.submitted.slice(0, 10))}. Submitting again updates it.`;
+    document.getElementById("hours-note").innerText = note;
+}
+
+// --- Invoice ---
+function openInvoice() {
+    if (!hoursData || !hoursData.shifts.length) { document.getElementById("hours-msg").innerText = "There are no completed hours to invoice this week."; return; }
+    const mins = dayMinutes(), saved = {};
+    if (hoursData.invoice) hoursData.invoice.days.forEach((d) => { saved[d.date] = d.rate; });
+    const lastRate = localStorage.getItem("rate:" + userName) || "";
+
+    document.getElementById("inv-period").innerText = `Invoice period ${dmyFull(hoursData.from)} to ${dmyFull(hoursData.to)}. Tap a rate to change it for that day.`;
+    document.getElementById("t-invoice").innerHTML =
+        "<tr><th>Date</th><th>Day</th><th>Hours</th><th>Rate (&pound;/hr)</th><th>Total</th></tr>" +
+        weekDays(hoursData.from).map((day) => {
+            const h = Math.round((mins[day] || 0) / 60 * 100) / 100;
+            const weekday = new Date(day + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short" });
+            const rate = saved[day] !== undefined ? saved[day] : (h ? lastRate : "");
+            return `<tr><td>${dmyShort(day)}</td><td>${weekday}</td><td>${h.toFixed(2)}</td>` +
+                   `<td><input class="rate" type="number" inputmode="decimal" min="0" step="0.5" data-day="${day}" data-h="${h}" value="${rate}" ${h ? "" : "disabled"}></td>` +
+                   `<td class="d-total">${gbp(h * (Number(rate) || 0))}</td></tr>`;
+        }).join("");
+    document.getElementById("inv-msg").innerText = "";
+    lastInvoice = null;
+    recalcInvoice();
+    showScreen("invoice", "Invoice", "Set your rate for each day");
+    startIdleTimer(QA_IDLE_MS);
+}
+
+function invoiceFromScreen() {
+    const days = [];
+    let totalHours = 0, totalAmount = 0;
+    document.querySelectorAll("#t-invoice .rate").forEach((inp) => {
+        const h = Number(inp.dataset.h), rate = Number(inp.value) || 0;
+        if (!h) return;
+        const total = Math.round(h * rate * 100) / 100;
+        days.push({ date: inp.dataset.day, hours: h, rate: rate, total: total });
+        totalHours += h;
+        totalAmount += total;
+    });
+    return { days: days, totalHours: Math.round(totalHours * 100) / 100, totalAmount: Math.round(totalAmount * 100) / 100 };
+}
+
+function recalcInvoice() {
+    document.querySelectorAll("#t-invoice .rate").forEach((inp) => {
+        inp.closest("tr").querySelector(".d-total").innerText = gbp(Number(inp.dataset.h) * (Number(inp.value) || 0));
+    });
+    const inv = invoiceFromScreen();
+    document.getElementById("inv-hours").innerText = inv.totalHours.toFixed(2);
+    document.getElementById("inv-sum").innerText = gbp(inv.totalAmount);
+}
+
+function backToHours() {
+    showScreen("hours", "My Hours", "Completed shifts");
+    if (hoursData) renderHours();
+}
+
+async function submitInvoice() {
+    if (busy) return;
+    const msg = document.getElementById("inv-msg"), rates = {};
+    for (const inp of document.querySelectorAll("#t-invoice .rate")) {
+        if (!Number(inp.dataset.h)) continue;
+        if (!(Number(inp.value) > 0)) { msg.style.color = ""; msg.innerText = `Please enter an hourly rate for ${dmyShort(inp.dataset.day)}.`; return; }
+        rates[inp.dataset.day] = Number(inp.value);
+    }
+    busy = true;
+    msg.style.color = "#4ade80";
+    msg.innerText = "Submitting invoice...";
+    try {
+        const r = await callBackend({ type: "invoice", pin: enteredPin, from: hoursData.from, to: hoursData.to, rates: rates });
+        if (r.status === "SUCCESS") {
+            lastInvoice = r.invoice;
+            const last = Object.values(rates).pop();
+            try { localStorage.setItem("rate:" + userName, String(last)); } catch (err) {}
+            msg.innerText = "√ Invoice submitted to Admin. You can download a PDF below.";
+        } else {
+            msg.style.color = "";
+            msg.innerText = r.reason || "Something went wrong. Please try again.";
+        }
+    } catch (err) {
+        msg.style.color = "";
+        msg.innerText = "Network issue. Please try again.";
+    } finally {
+        busy = false;
+    }
+}
+
+function downloadInvoice() {
+    const inv = lastInvoice || Object.assign(
+        { id: "", contractor: userName, from: hoursData.from, to: hoursData.to, submitted: "" }, invoiceFromScreen());
+    printInvoice(inv);
+}
+
+document.getElementById("t-invoice").addEventListener("input", () => { recalcInvoice(); startIdleTimer(QA_IDLE_MS); });
 
 // --- Keyboard entry on the PIN screen (handy on desktop) ---
 document.addEventListener("keydown", (e) => {
