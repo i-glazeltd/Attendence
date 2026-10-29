@@ -2,12 +2,12 @@
 
 Staff check in and out by PIN + site QR code. Admins manage users, sites and hours from `admin.html`.
 
-**Current release: 1.4.0**
+**Current release: 1.5.0**
 
 ## Where each file lives
 | File | Goes in |
 |---|---|
-| `index.html`, `app.js`, `style.css` | GitHub (check-in page) |
+| `index.html`, `app.js`, `style.css`, `invoice.js` | GitHub (check-in page; `invoice.js` is shared with the dashboard) |
 | `admin.html`, `admin.js`, `admin.css` | GitHub (admin dashboard) |
 | `company logo1.png` | GitHub |
 | `Code.gs` | Google Apps Script (Extensions > Apps Script in the Google Sheet), NOT in GitHub |
@@ -33,12 +33,14 @@ The version must match in all of these (change them together, same number):
 - **Sites:** SiteID | SiteName | Latitude | Longitude | RadiusMetres | Status (Active/Inactive)
 - **AuditLog:** Timestamp | Name | Action | Site ID | Site Name | Status | Reason | Dist | Google Maps Link | Check-Out Time | Check-Out Dist | Check-Out Map | User Comments | Admin Comments
 
+- **Invoices** (created automatically): Invoice ID | Submitted | Contractor | Period From | Period To | Total Hours | Total Amount | Status | Breakdown. Contractors build these from "My Hours" (weekly, Monday to Sunday); hours come from the AuditLog and are worked out by the script, the contractor only enters the hourly rate for each day. Resubmitting the same week updates that invoice. Shifts with no check-out are not counted until an admin corrects them.
 - **QAReports** (created automatically): Timestamp | Inspector | Site ID | Site Name | Overall | Checks | Photos (links). QA photos are saved in a Google Drive folder called "Site QA Photos" (in the Drive of the account that owns the script). Share that folder with anyone who needs to open the photo links. After first pasting Code.gs, run `setupQaFolder` once in Apps Script to give it Drive permission.
 - QA checklist items are the `QA_CHECKS` list near the top of the QA section in `app.js`.
 
 Rules: check-in/out only within the site's RadiusMetres (500m if blank); anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
 
 ## Changelog
+- **1.5.0** Contractors: My Hours + daily-rate invoices (PDF). Admin: Invoices tab, "Generate an unused PIN" button.
 - **1.4.0** Each site has its own check-in radius (RadiusMetres), set in the dashboard; the map picker circle follows it.
 - **1.3.1** Adding a site no longer asks for a Site ID: it is filled in automatically from the site name (and kept if the site is renamed, so printed QR codes keep working).
 - **1.3.0** Admin dashboard: QA Reports tab (filter, see results, view photos).
