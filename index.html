@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>i-Glaze Site Portal</title>
-    <link rel="stylesheet" href="style.css?v=1.4.0">
+    <link rel="stylesheet" href="style.css?v=1.5.0">
     <!-- HTML5 QR Code Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -50,6 +50,10 @@
                 <span class="menu-icon">&#128203;</span>
                 <span class="menu-text"><strong>QUALITY ASSURANCE</strong><small>Record Site QA Inspection</small></span>
             </button>
+            <button class="menu-card hrs" onclick="openHours()">
+                <span class="menu-icon">&#129534;</span>
+                <span class="menu-text"><strong>MY HOURS</strong><small>View Hours &amp; Create Invoice</small></span>
+            </button>
             <button class="logout-btn" onclick="logout()">Log out</button>
         </div>
 
@@ -77,6 +81,33 @@
             <button class="qa-draft" onclick="saveQaDraft()">Save Draft</button>
             <button class="logout-btn back-btn" onclick="backToMenu()">&larr; Back to menu</button>
             <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
+
+        <!-- Screen: My hours -->
+        <div id="hours-screen" class="screen-card hidden">
+            <div class="week-nav">
+                <button onclick="shiftWeek(-1)">&larr;</button>
+                <strong id="week-label"></strong>
+                <button onclick="shiftWeek(1)">&rarr;</button>
+            </div>
+            <p id="hours-msg" class="error-msg"></p>
+            <table id="t-shifts" class="mini"></table>
+            <p id="hours-note" class="note-small"></p>
+            <div class="total-bar">Total hours: <b id="hours-total">0h 00m</b></div>
+            <button class="qa-submit" onclick="openInvoice()">PREPARE INVOICE</button>
+            <button class="logout-btn" onclick="hoursBack()">&larr; Back</button>
+            <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
+
+        <!-- Screen: Invoice -->
+        <div id="invoice-screen" class="screen-card hidden">
+            <p id="inv-period" class="note-small"></p>
+            <table id="t-invoice" class="mini"></table>
+            <div class="total-bar">Total hours: <b id="inv-hours">0.00</b><br>Total sum: <b id="inv-sum">&pound;0.00</b></div>
+            <p id="inv-msg" class="error-msg"></p>
+            <button class="qa-submit" onclick="submitInvoice()">CONFIRM &amp; SUBMIT INVOICE</button>
+            <button class="qa-draft" onclick="downloadInvoice()">Download PDF</button>
+            <button class="logout-btn" onclick="backToHours()">&larr; Back to hours</button>
         </div>
 
         <!-- Screen 4: Action Selection & Scanner -->
@@ -122,6 +153,7 @@
             </div>
 
             <button id="retry-btn" class="retry-btn hidden" onclick="retryScan()">Try again</button>
+            <button class="logout-btn hours-btn hidden" onclick="openHours()">My hours &amp; invoices</button>
             <button class="logout-btn back-btn" onclick="backToMenu()">&larr; Back to menu</button>
             <button class="logout-btn" onclick="logout()">Log out</button>
         </div>
@@ -134,6 +166,7 @@
 
     </div>
 
-    <script src="app.js?v=1.4.0"></script>
+    <script src="invoice.js?v=1.5.0"></script>
+    <script src="app.js?v=1.5.0"></script>
 </body>
 </html>
