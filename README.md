@@ -2,7 +2,7 @@
 
 Staff check in and out by PIN + site QR code. Admins manage users, sites and hours from `admin.html`.
 
-**Current release: 1.5.1**
+**Current release: 1.5.2**
 
 ## Where each file lives
 | File | Goes in |
@@ -40,6 +40,7 @@ The version must match in all of these (change them together, same number):
 Rules: check-in/out only within the site's RadiusMetres (500m if blank); anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
 
 ## Changelog
+- **1.5.2** Location picker: radius slider and box, circle resizes live and is saved with the location.
 - **1.5.1** QA Reports photo viewer: large pop-out with next/previous and thumbnails.
 - **1.5.0** Contractors: My Hours + daily-rate invoices (PDF). Admin: Invoices tab, "Generate an unused PIN" button.
 - **1.4.0** Each site has its own check-in radius (RadiusMetres), set in the dashboard; the map picker circle follows it.
