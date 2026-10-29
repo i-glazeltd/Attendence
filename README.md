@@ -2,7 +2,7 @@
 
 Staff check in and out by PIN + site QR code. Admins manage users, sites and hours from `admin.html`.
 
-**Current release: 1.5.2**
+**Current release: 1.5.3**
 
 ## Where each file lives
 | File | Goes in |
@@ -37,9 +37,10 @@ The version must match in all of these (change them together, same number):
 - **QAReports** (created automatically): Timestamp | Inspector | Site ID | Site Name | Overall | Checks | Photos (links). QA photos are saved in a Google Drive folder called "Site QA Photos" (in the Drive of the account that owns the script). Share that folder with anyone who needs to open the photo links. After first pasting Code.gs, run `setupQaFolder` once in Apps Script to give it Drive permission.
 - QA checklist items are the `QA_CHECKS` list near the top of the QA section in `app.js`.
 
-Rules: check-in/out only within the site's RadiusMetres (500m if blank); anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
+Rules: check-in/out only within the site's RadiusMetres (125m if blank); anyone still checked in at 23:00 is closed automatically (needs `setupAutoLogoutTrigger` run once in Apps Script).
 
 ## Changelog
+- **1.5.3** Default check-in radius is now 125m (new sites and sites with no radius set).
 - **1.5.2** Location picker: radius slider and box, circle resizes live and is saved with the location.
 - **1.5.1** QA Reports photo viewer: large pop-out with next/previous and thumbnails.
 - **1.5.0** Contractors: My Hours + daily-rate invoices (PDF). Admin: Invoices tab, "Generate an unused PIN" button.
