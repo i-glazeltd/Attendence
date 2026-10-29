@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Site Attendance</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="admin.css?v=1.5.1">
+    <link rel="stylesheet" href="admin.css?v=1.5.2">
 </head>
 <body>
     <header>
@@ -97,7 +97,12 @@
             <button onclick="pickSearch()">Search</button>
         </div>
         <div id="pickmap"></div>
-        <p id="p-info" class="note">Click the map or drag the pin to set the location. The blue circle shows the check-in area (the radius you set).</p>
+        <div class="radius-row">
+            <label for="p-rad">Check-in radius</label>
+            <input type="range" id="p-rad" min="20" max="2000" step="10" value="500">
+            <input type="number" id="p-radnum" min="20" max="5000" step="10" value="500"> <span>metres</span>
+        </div>
+        <p id="p-info" class="note">Click the map or drag the pin to set the location. Use the slider or box below to set the check-in radius (the blue circle).</p>
         <div class="btns"><button id="p-use">Use this location</button><button class="ghost" onclick="pickdlg.close()">Cancel</button></div>
     </dialog>
 
@@ -126,7 +131,7 @@
     <footer>&copy; <span id="yr"></span> i-Glaze Limited. All rights reserved. Built by Karl Harris<br><span id="version-line"></span></footer>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="invoice.js?v=1.5.1"></script>
-    <script src="admin.js?v=1.5.1"></script>
+    <script src="invoice.js?v=1.5.2"></script>
+    <script src="admin.js?v=1.5.2"></script>
 </body>
 </html>
