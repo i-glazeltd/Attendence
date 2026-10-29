@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.5.0";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -37,7 +37,7 @@ if (!token) location.href = "index.html";
 
 const $ = (id) => document.getElementById(id);
 const dlg = $("dlg");
-const state = { Users: [], Sites: [], logs: [], qa: null };
+const state = { Users: [], Sites: [], logs: [], qa: null, inv: null };
 
 const SCHEMAS = {
     Users: [
@@ -76,13 +76,14 @@ function stamp() {
 
 async function refreshData() {
     $("updated").innerText = "Refreshing...";
-    await Promise.all([loadLists(), loadHours(), state.qa ? loadQa() : null]);
+    await Promise.all([loadLists(), loadHours(), state.qa ? loadQa() : null, state.inv ? loadInv() : null]);
 }
 
 // ---------- Tabs ----------
 document.querySelectorAll("nav button").forEach((b) => b.addEventListener("click", () => {
     document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("active", x === b));
-    ["hours", "qareports", "Users", "Sites", "qr"].forEach((t) => { $(t).hidden = t !== b.dataset.tab; });
+    ["hours", "invoices", "qareports", "Users", "Sites", "qr"].forEach((t) => { $(t).hidden = t !== b.dataset.tab; });
+    if (b.dataset.tab === "invoices" && !state.inv) loadInv();
     if (b.dataset.tab === "qareports" && !state.qa) loadQa();
 }));
 
@@ -119,6 +120,9 @@ function openEdit(tab, row) {
     }).join("");
     if (tab === "Sites") {
         $("df").insertAdjacentHTML("beforeend", '<button class="ghost" type="button" onclick="openPicker()">&#128205; Pick location on map</button>');
+    }
+    if (tab === "Users") {
+        $("df").insertAdjacentHTML("beforeend", '<button class="ghost" type="button" onclick="genPin()">Generate an unused PIN</button>');
     }
     $("ds").onclick = () => saveRow(tab, row, cur);
     dlg.showModal();
@@ -329,6 +333,50 @@ function showMap(row, which) {
     mapdlg.showModal();
 }
 
+// ---------- Generate an unused PIN ----------
+function genPin() {
+    const pinEl = $("df").querySelector('[data-i="1"]'), roleEl = $("df").querySelector('[data-i="3"]');
+    const len = roleEl && roleEl.value === "Admin" ? 6 : 4;   // admins need 6+ digits
+    const used = new Set(state.Users.map((r) => r.v[1].padStart(4, "0")));
+    let p;
+    do {
+        p = String(Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296 * 10 ** len)).padStart(len, "0");
+    } while (used.has(p));
+    pinEl.value = p;
+}
+
+// ---------- Invoices ----------
+async function loadInv() {
+    const r = await api("invList", { from: $("inv-from").value, to: $("inv-to").value });
+    if (r.status !== "SUCCESS") return alert(r.reason);
+    state.inv = r.rows.reverse();   // newest first
+    renderInv();
+    stamp();
+}
+
+function invDays(v) { try { return JSON.parse(v[8]); } catch (err) { return []; } }
+
+function renderInv() {
+    const q = $("inv-search").value.trim().toLowerCase();
+    const rows = (state.inv || []).filter((r) => !q || r.v[2].toLowerCase().includes(q));
+    $("t-inv").innerHTML = "<tr><th>Invoice</th><th>Submitted</th><th>Contractor</th><th>Period</th><th>Hours</th><th>Total</th><th>Daily breakdown</th><th></th></tr>" +
+        rows.map((r) => {
+            const v = r.v;
+            const lines = invDays(v).map((d) =>
+                `<div>${new Date(d.date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short" })} ${esc(dmy(d.date))}: ${Number(d.hours).toFixed(2)}h x ${invMoney(d.rate)} = ${invMoney(d.total)}</div>`).join("");
+            return `<tr><td>${esc(v[0])}</td><td>${esc(dmy(v[1]))}</td><td>${esc(v[2])}</td><td>${esc(dmy(v[3]))} - ${esc(dmy(v[4]))}</td>` +
+                   `<td>${Number(v[5]).toFixed(2)}</td><td><b>${invMoney(v[6])}</b></td><td>${lines}</td>` +
+                   `<td class="act"><button class="small" onclick="pdfInv(${r.row})">PDF</button></td></tr>`;
+        }).join("");
+}
+
+function pdfInv(row) {
+    const v = state.inv.find((x) => x.row === row).v;
+    printInvoice({ id: v[0], contractor: v[2], from: v[3], to: v[4], submitted: v[1], days: invDays(v), totalHours: Number(v[5]), totalAmount: Number(v[6]) });
+}
+
+$("inv-search").addEventListener("input", renderInv);
+
 // ---------- QA reports ----------
 const photodlg = $("photodlg");
 
@@ -465,5 +513,7 @@ $("f-from").value = iso(weekAgo);
 $("f-to").value = iso(today);
 $("qa-from").value = iso(new Date(Date.now() - 29 * 864e5));
 $("qa-to").value = iso(today);
+$("inv-from").value = iso(new Date(Date.now() - 59 * 864e5));
+$("inv-to").value = iso(today);
 loadLists();
 loadHours();
