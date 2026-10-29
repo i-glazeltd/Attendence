@@ -73,3 +73,12 @@ td a { color: #38bdf8; }
 .oktxt { color: #4ade80; }
 .ph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; max-height: 60vh; overflow: auto; margin-bottom: 10px; }
 .ph-grid img { width: 100%; border-radius: 8px; }
+
+/* Photo viewer */
+.photodlg { width: min(900px, 96vw); }
+.ph-stage { display: flex; align-items: center; gap: 8px; }
+.ph-stage img { flex: 1; min-width: 0; max-height: 62vh; object-fit: contain; border-radius: 10px; background: #0f172a; }
+.ph-nav { padding: 14px 16px; font-size: 1.6rem; line-height: 1; }
+.ph-thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.ph-thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; cursor: pointer; opacity: 0.55; border: 2px solid transparent; }
+.ph-thumbs img.on { opacity: 1; border-color: #0284c7; }
