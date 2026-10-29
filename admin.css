@@ -82,3 +82,8 @@ td a { color: #38bdf8; }
 .ph-thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
 .ph-thumbs img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; cursor: pointer; opacity: 0.55; border: 2px solid transparent; }
 .ph-thumbs img.on { opacity: 1; border-color: #0284c7; }
+
+/* Radius controls in the location picker */
+.radius-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 0.85rem; color: #94a3b8; }
+.radius-row input[type="range"] { flex: 1; min-width: 140px; accent-color: #0284c7; }
+.radius-row input[type="number"] { width: 90px; }
