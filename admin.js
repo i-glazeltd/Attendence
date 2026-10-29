@@ -2,7 +2,7 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMkTuDRTMRfSy6mrP2X_XSYMKSv4mG13dCdITgbe-fWQkLRr2VKHBXybH4aAwc8qX0/exec";
 
 // --- VERSION: current release is below. Keep ALL files on the same number (see README.md) ---
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.5.1";
 let lastScriptV = "";
 
 function cmpVer(a, b) {
@@ -402,16 +402,37 @@ function renderQa() {
         }).join("");
 }
 
+let phList = [], phIdx = 0;
+
+function phShow(i) {
+    phIdx = (i + phList.length) % phList.length;
+    $("ph-main").src = phList[phIdx];
+    $("ph-count").innerText = `Photo ${phIdx + 1} of ${phList.length}`;
+    document.querySelectorAll("#ph-thumbs img").forEach((t, n) => t.classList.toggle("on", n === phIdx));
+    document.querySelectorAll(".ph-nav").forEach((b) => { b.hidden = phList.length < 2; });
+}
+
+function phStep(n) { phShow(phIdx + n); }
+
 async function showPhotos(row) {
     const rep = state.qa.find((x) => x.row === row);
     $("ph-title").innerText = `${rep.v[1]}: ${rep.v[3] || rep.v[2]} (${dmy(rep.v[0])})`;
-    $("ph-grid").innerHTML = "Loading photos...";
+    $("ph-main").removeAttribute("src");
+    $("ph-thumbs").innerHTML = "";
+    $("ph-count").innerText = "Loading photos...";
     photodlg.showModal();
     const r = await api("qaPhotos", { row: row });
-    $("ph-grid").innerHTML = r.status === "SUCCESS"
-        ? r.photos.map((p, i) => `<img src="${p}" alt="Photo ${i + 1}">`).join("")
-        : esc(r.reason);
+    if (r.status !== "SUCCESS") { $("ph-count").innerText = r.reason; return; }
+    phList = r.photos;
+    $("ph-thumbs").innerHTML = phList.map((p, i) => `<img src="${p}" alt="Thumbnail ${i + 1}" onclick="phShow(${i})">`).join("");
+    phShow(0);
 }
+
+document.addEventListener("keydown", (e) => {
+    if (!photodlg.open || !phList.length) return;
+    if (e.key === "ArrowRight") phStep(1);
+    if (e.key === "ArrowLeft") phStep(-1);
+});
 
 $("qa-search").addEventListener("input", renderQa);
 $("qa-fails").addEventListener("change", renderQa);
